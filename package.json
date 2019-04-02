@@ -3,10 +3,14 @@
   "version": "1.0.1",
   "main": "starfighter.js",
   "dependencies": {
-    "util": "*",
-	"express": "3.*",
-	"nano": "*",
-	"newrelic": "*"
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "method-override": "^3.0.0",
+    "morgan": "^1.9.1",
+    "nano": "*",
+    "newrelic": "*",
+    "serve-favicon": "^2.5.0",
+    "util": "*"
   },
   "scripts": {
     "start": "node starfighter.js"

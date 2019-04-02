@@ -1,7 +1,7 @@
 applications:
-- host: starfighter-${random-word}
+- random-route: true
   disk: 512M
   name: starfighter
   path: . 
-  memory: 512M
+  memory: 256M
   instances: 1

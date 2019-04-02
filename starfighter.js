@@ -11,21 +11,41 @@ var express = require('express')
   , http = require('http')
   , path = require('path');
 
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var bodyParser = require('body-parser');
+var methodOverride = require('method-override')
 
 var app = express();
 
-app.configure(function(){
-	app.set('port', process.env.VCAP_APP_PORT || 3000);
-	app.set('views', __dirname + '/views');
-	app.use(express.favicon());
-	app.use(express.logger('dev'));
-	app.use(express.json());
-	app.use(express.bodyParser());
-	app.use(express.methodOverride());
-	app.use(express.urlencoded());
-	app.use(app.router);
-	app.use(express.static(path.join(__dirname, 'public')));
-});
+app.set('port', process.env.VCAP_APP_PORT || 3000);
+app.set('views', __dirname + '/views');
+// app.use(express.favicon());
+// app.use(express.logger('dev'));
+app.use(logger('dev'));
+app.use(express.json());
+// app.use(express.bodyParser());
+// app.use(express.methodOverride());
+app.use(express.urlencoded());
+// app.use(app.router);
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+
+app.use(function (req, res) {
+  res.setHeader('Content-Type', 'text/plain')
+  res.write('you posted:\n')
+  res.end(JSON.stringify(req.body, null, 2))
+})
+
+// override with the X-HTTP-Method-Override header in the request
+app.use(methodOverride('X-HTTP-Method-Override'))
 
 app.get('/scores', function(request, response) {
 	response.header('Content-Type', 'application/json');
