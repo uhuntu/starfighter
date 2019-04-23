@@ -33,8 +33,6 @@ var ASTEROID_STROKE_CLASS_3 = ASTEROID;
 var ASTEROID_STROKE_CLASS_2 = ASTEROID;
 var ASTEROID_STROKE_CLASS_1 = ASTEROID;
 
-
-
 /* COLOR SCHEME - TRON LEGACY */
 
 //var BACKGROUND = '#152d42';
@@ -99,10 +97,6 @@ var ASTEROID_STROKE_CLASS_1 = ASTEROID;
 //var ASTEROID_STROKE_CLASS_2 = "#FF7D87";
 //var ASTEROID_STROKE_CLASS_1 = "#FF7D87";
 
-
-
-
-
 function getUrlVars() {
 	var vars = {};
 	var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
@@ -147,54 +141,8 @@ callbacks = {
 	}
 }
 
-
 function sendMessage(type, data) {
 	myWorker.postMessage(JSON.stringify({ type: type, data: data }));
-}
-
-if (!hasWorker) {
-	var client = null;
-	sendMessage = function(type, data) {
-		var params = JSON.parse(data);
-		switch (type) {
-			case "connect":
-				app.client = new Messaging.Client(app.server, app.port, app.clientId);
-				app.client.onMessageArrived = function(msg) {
-					callbacks.onMessage({ destinationName: msg.destinationName, payloadString: msg.payloadString });
-				}
-				app.client.onConnectionLost = function() {
-					console.log("lost connection to MessageSight!");
-					app.connected = false;
-				}
-				var willMessage = new Messaging.Message(JSON.stringify({
-					uuid: app.uuid,
-					action: "left"
-				}));
-				willMessage.destinationName = prefix + "players/event/0/0/0/"+app.uuid;
-
-				app.client.connect({
-					keepAliveInterval: 3600,
-					userName: "starfighter",
-					password: "starfighter",
-					onSuccess: function() {
-						app.onConnection();
-					},
-					willMessage: willMessage
-				});
-			case "subscribe":
-				app.client.subscribe(params.topic);
-				break;
-			case "unsubscribe":
-				app.client.unsubscribe(params.topic);
-				break;
-			case "publish":
-				var msgObj = new Messaging.Message(params.message);
-				msgObj.destinationName = params.topic;
-				if (params.retained) { msgObj.retained = true; }
-				app.client.send(msgObj);
-				break;
-		}
-	}
 }
 
 var sounds_count = 5;
@@ -226,6 +174,7 @@ function playSound(name) {
 
 function init(){
 	if (hasWorker) {
+		console.log("has worker");
 		window.myWorker = new Worker("js/mqtt_ww.js");
 		window.myWorker.onmessage = function(e) {
 			try {
@@ -240,6 +189,7 @@ function init(){
 			}
 		}
 	}
+
 	if (displayMode == "viewer") {
 		window.app = new ViewerApp();
 		console.log("VIEWER");
@@ -273,6 +223,7 @@ function init(){
 		app.doFrame();
 	})();
 }
+
 var frames = 0;
 
 function setupInput() {
@@ -521,15 +472,12 @@ var resize = function() {
     
     var cavasArea = document.getElementById( 'canvas' );
     
-    
-    
 	var size = {
 			width: window.innerWidth || document.body.clientWidth,
 			height: window.innerHeight || document.body.clientHeight
 	};
     60
     size.height = size.height - 120;
-    
     
     console.log( 'anton height: ' + size.height );
 	
@@ -566,6 +514,7 @@ var viewport = {
 	height: null,
 	width: null
 };
+
 function getViewportWidth() {
 	if (!viewport.width) {
 		console.log("setting viewport width");
@@ -604,7 +553,7 @@ var randomString = function(length) {
 }
 
 var ASTEROID_BOUNDS_LENGTH = 3000;
-var WORLD_BOUNDS_LENGTH = 16000;
+var WORLD_BOUNDS_LENGTH = 1600;
 var WORLD_BOUNDS = {
 	x: {
 		min: 0,
@@ -633,7 +582,7 @@ function setWorldBounds(size) {
 // should be a power of 2
 var SHIP_PUBLISHES_PER_SECOND = 16;
 
-var INITIAL_ASTEROID_DENSITY = 0.00001;
+var INITIAL_ASTEROID_DENSITY = 0.000001;
 var getInitialAsteroidCount = function() {
 	return Math.floor(ASTEROID_BOUNDS_LENGTH * ASTEROID_BOUNDS_LENGTH * INITIAL_ASTEROID_DENSITY) * (1 + (app.difficulty / 2));
 }
@@ -1132,7 +1081,6 @@ Ship.prototype.needsDelete = function() {
 	return (app.gameTimeRemaining < 0 || this.shield <= 0);
 }
 
-
 var BULLET_MAX_TIME = 2.5;
 var AI_BULLET_MAX_TIME = 1.5;
 var BULLET_VELOCITY = 500;
@@ -1315,8 +1263,8 @@ function getDispScale() {
 
 function StarfighterApp() {
 	//this.server = "messagesight.demos.ibm.com";
-	this.server = "192.84.45.43";
-	this.port = 1883;
+	this.server = "10.11.108.10";
+	this.port = 1884;
 	this.showDebugInfo = false;
 	this.uuid = Math.random().toString(36).slice(2).substring(0,10);
 	this.name = "Anonymous";
@@ -1409,7 +1357,7 @@ StarfighterApp.prototype.openNamePopup = function() {
 }
 
 StarfighterApp.prototype.changeSubscriptions = function(buckets) {
-	//console.log(buckets);
+//	console.log(buckets);
 	if (!this.bucketList) { this.bucketList = []; }
 
 	var oldBucketList = this.bucketList;
@@ -1423,7 +1371,7 @@ StarfighterApp.prototype.changeSubscriptions = function(buckets) {
 		actions.unsubscribe(topic, 
 			{ 
 				onSuccess: (function(t, b) { return function() { 
-					//console.log("unsubscribed from " + t); 
+					console.log("unsubscribed from " + t); 
 					var index = -1;
 					for (var i in app.subList) {
 						if (app.subList[i].topic == t) {
@@ -1457,7 +1405,7 @@ StarfighterApp.prototype.changeSubscriptions = function(buckets) {
 			actions.subscribe(topic, 
 				{ 
 					onSuccess: (function(t, b) { return function() { 
-						//console.log("subscribed to " + t); 
+						console.log("subscribed to " + t); 
 						var match = t.replace(/\+/g,"[^\\/]*");
 						app.subList.push({ topic: t, match: match, count: 0 });
 						app.bucketList.push(b);
@@ -1671,9 +1619,10 @@ StarfighterApp.prototype.processMessage = function(topic, payload) {
 		// https://m2mdemos.cloudant.com/starfighter/_all_docs
 	} else if (topic.match(prefix + "players/ship/.*")) {
 	//} else if (topic.match(prefix + "players/.*/ship") || topic.match(prefix + "players/ship/.*")) {
+//		console.log(topic, payload);
+
 		var uuid = topic.split("/")[6];
 		if (uuid == this.uuid || payload == "") { return; }
-		//console.log(topic, payload);
 		var data = JSON.parse(payload);
 		var name = data.name;
 		var worldPos = {
@@ -1702,6 +1651,9 @@ StarfighterApp.prototype.processMessage = function(topic, payload) {
 		this.enemyShips[uuid].status = data.status;
 		this.enemyShips[uuid].worldPos = worldPos;
 		this.enemyShips[uuid].name = name;
+
+//		console.log(this.enemyShips);
+
 	} else if (topic.match(prefix + "players/event/.*") || topic.match(prefix + "players/bullet/.*")) {
 		var uuid = topic.split("/")[6];
 		if (uuid == this.uuid) { return; }
@@ -2119,7 +2071,6 @@ StarfighterApp.prototype.scoreForShipKill = function() {
 	}
 }
 
-
 StarfighterApp.prototype.draw = function() {
 		var time_s = (new Date()).getTime();
 	var context = this.canvas.getContext("2d");
@@ -2455,7 +2406,6 @@ StarfighterApp.prototype.draw = function() {
         var asteroidsNode = document.getElementById( "asteroidsValue" );
         asteroidsNode.innerHTML = this.bigAsteroidCount;
 
-
 		if (this.showDebugInfo) {
 			context.save();
 			context.font = "14px HelveticaNeue-Light";
@@ -2476,7 +2426,6 @@ StarfighterApp.prototype.draw = function() {
 				y += 18;
 			}
 
-
 			context.font = "18px HelveticaNeue-Light";
 			context.fillText("FPS", getViewportWidth() - 140, 20);
 			context.fillText("Rate (in)", getViewportWidth() - 140, 45);
@@ -2490,7 +2439,6 @@ StarfighterApp.prototype.draw = function() {
 			context.fillText("(" + Math.round(app.ship.worldPos.x) + ", " + Math.round(app.ship.worldPos.y) + ")", getViewportWidth() - 140, 130);
 
 			context.restore();
-
 		}
 	}
 	var time_e = (new Date()).getTime();
@@ -2521,7 +2469,6 @@ StarfighterApp.prototype.startMessageRateCalcInterval = function() {
 	})(this), 1000);
 }
 
-
 var publishIndex = 0;
 StarfighterApp.prototype.startShipPublishInterval = function() {
 	setInterval((function(self) {
@@ -2546,11 +2493,13 @@ StarfighterApp.prototype.startShipPublishInterval = function() {
 					status: ((self.gamePaused ? "PAUSED" : "NORMAL")),
 					score: self.score
 				});
-
+//				console.log(publishIndex);
 				for (var i = 0; i <= 4; i++) {
+					// 16, 8, 4, 2, 1
 					if (publishIndex % (SHIP_PUBLISHES_PER_SECOND / Math.pow(2, i)) == 0) {
 						var topicBit = coordToBuckets(self.ship.worldPos.x, self.ship.worldPos.y, i);
 						var topic = prefix + "players/ship/" + topicBit + "/" + self.uuid;
+//						console.log(topic, msg);
 						actions.publish(topic, msg, false);
 					}
 				}
@@ -2611,26 +2560,10 @@ StarfighterApp.prototype.startShipCleanupInterval = function() {
 	})(this), 3000);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function ViewerApp() {
 	//this.server = "messagesight.demos.ibm.com";
-	this.server = "192.84.45.43";
-	this.port = 1883;
+	this.server = "10.11.108.10";
+	this.port = 1884;
 	this.showDebugInfo = true;
 	this.uuid = Math.random().toString(36).slice(2).substring(0,5);
 	this.name = "Anonymous";
@@ -2727,7 +2660,7 @@ ViewerApp.prototype.changeSubscriptions = function(buckets) {
 		actions.unsubscribe(topic, 
 			{ 
 				onSuccess: (function(t, b) { return function() { 
-					//console.log("unsubscribed from " + t); 
+					console.log("unsubscribed from " + t); 
 					var index = -1;
 					for (var i in app.subList) {
 						if (app.subList[i].topic == t) {
@@ -2761,7 +2694,7 @@ ViewerApp.prototype.changeSubscriptions = function(buckets) {
 			actions.subscribe(topic, 
 				{ 
 					onSuccess: (function(t, b) { return function() { 
-						//console.log("subscribed to " + t); 
+						console.log("subscribed to " + t); 
 						var match = t.replace(/\+/g,"[^\\/]*");
 						app.subList.push({ topic: t, match: match, count: 0 });
 						app.bucketList.push(b);
@@ -2772,7 +2705,6 @@ ViewerApp.prototype.changeSubscriptions = function(buckets) {
 	}
 	this.bucketList = buckets;
 }
-
 
 ViewerApp.prototype.onConnection = function() {
 	this.loadScores();
@@ -2835,6 +2767,7 @@ ViewerApp.prototype.processMessage = function(topic, payload) {
 		}
 	} else if (topic.match(prefix + "players/ship/.*")) {
 	//} else if (topic.match(prefix + "players/.*/ship") || topic.match(prefix + "players/ship/.*")) {
+//		console.log(topic, payload);
 		var uuid = topic.split("/")[6];
 		if (uuid == this.uuid || payload == "") { return; }
 		var data = JSON.parse(payload);
@@ -2911,7 +2844,6 @@ ViewerApp.prototype.loadScores = function() {
 		},
 	});
 }
-
 
 ViewerApp.prototype.doFrame = function() {
 	frames++;
@@ -3257,7 +3189,7 @@ ViewerApp.prototype.draw = function() {
 		var time_s = (new Date()).getTime();
 		this.asteroids[i].draw();
 		var time_e = (new Date()).getTime();
-		console.log(time_e - time_s);
+//		console.log(time_e - time_s);
 	}
 	for (var i in this.enemyShips) {
 		this.enemyShips[i].draw("viewer");
@@ -3314,7 +3246,6 @@ ViewerApp.prototype.draw = function() {
 	var highScoreName = (this.score > getHighestScore()) ? this.name : getHighestScoreName();
 	if (highScoreName != "") { highScoreName = "(" + highScoreName + ")"; }
 	context.fillText("Best Score:  " + Math.max(getHighestScore(), this.score) + "  " + highScoreName, 25, getViewportHeight() - 35);
-
 
 	var y = 90;
 	for (var i in arr) {
@@ -3379,7 +3310,6 @@ ViewerApp.prototype.draw = function() {
 		}
 		endY += 20;
 
-
 		context.save();
 		context.strokeStyle = "#aaa";
 		context.lineWidth = 2;
@@ -3405,7 +3335,7 @@ ViewerApp.prototype.draw = function() {
 			context.fillText(this.subList[i].count, getViewportWidth() - 80, y);
 			y += 18;
 		}
-		console.log(y);
+//		console.log(y);
 
 		context.font = "18px HelveticaNeue-Light";
 		context.fillText("FPS", getViewportWidth() - 300, startY);

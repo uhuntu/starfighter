@@ -1,5 +1,5 @@
 /*eslint-env node */
-require('newrelic');
+//require('newrelic');
 
 var http = require('http');
 var nano = require('nano')('https://m2mdemos.cloudant.com')
@@ -26,7 +26,8 @@ app.use(logger('dev'));
 app.use(express.json());
 // app.use(express.bodyParser());
 // app.use(express.methodOverride());
-app.use(express.urlencoded());
+app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(express.urlencoded());
 // app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
